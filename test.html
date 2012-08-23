@@ -1,0 +1,58 @@
+<html>
+    <body>
+        <div id="biggraph" style="width: 600px;height: 400px;"></div><br/>
+        <div id="smallgraph" style="width: 600px;height: 50px;"></div>
+    </body>
+    <script src="jquery-1.7.1.min.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+    <!--<script src="jquery-ui-1.8.16.custom.min.js" type="text/javascript" language="javascript" charset="utf-8" ></script>-->
+<script src="jquery.flot.min.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+<script src="jquery.flot.rangeselection.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+    <script type="text/javascript">
+        var pGraph;
+        var rangeselectionCallback = function(o){
+            console.log("New selection:"+o.start+","+o.end);
+            var xaxis = pGraph.getAxes().xaxis;
+            xaxis.options.min = o.start;
+            xaxis.options.max = o.end;
+            pGraph.setupGrid();
+            pGraph.draw();
+
+        }
+        var data = [];
+            data[0] = {
+                color: '#fed',
+                data: []
+            }
+        for(var i = 0;i<1000;i++){
+            data[0].data[i] = [i, Math.sin(i/50)];
+        }
+pGraph = $.plot("#biggraph",data,{
+        xaxis:{
+            min: 20,
+            max: 100
+            }
+        });
+    
+        var sData = $.extend(true,[],data);
+        for(var i=0;i<sData.length;i++){
+            sData[i].color = '#ccc';
+            sData[i].label = undefined;
+        }
+        $.plot("#smallgraph",sData,{
+            yaxis: {
+                show: false
+            },
+            grid:{
+                color: "#666",
+                backgroundColor: { colors: ["#ddd", "#fff"]}
+            },
+            rangeselection:{
+                color: "#feb",
+                start: 20,
+                end: 100,
+                enabled: true,
+                callback: rangeselectionCallback
+            }
+        });
+    </script>
+</html>
