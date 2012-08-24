@@ -146,22 +146,24 @@
         function clamp(min, value, max){
             return value < min ? min : ( value > max ? max : value);
         }
-        function roundedRect(ctx,x,y,width,height,radius,fill,stroke){
+        function roundedRect(ctx,x,y,w,h,radius,fill,stroke){
             ctx.save();	// save the context so we don't mess up others
+            var r = x + w;
+            var b = y + h;
             ctx.beginPath();
+            //ctx.strokeStyle="green";
+            ctx.lineWidth="4";
+            ctx.moveTo(x+radius, y);
+            ctx.lineTo(r-radius, y);
+            ctx.quadraticCurveTo(r, y, r, y+radius);
+            ctx.lineTo(r, y+h-radius);
+            ctx.quadraticCurveTo(r, b, r-radius, b);
+            ctx.lineTo(x+radius, b);
+            ctx.quadraticCurveTo(x, b, x, b-radius);
+            ctx.lineTo(x, y+radius);
+            ctx.quadraticCurveTo(x, y, x+radius, y);
+            ctx.stroke();
 
-            // draw top and top right corner
-            ctx.moveTo(x+radius,y);
-            ctx.arcTo(x+width,y,x+width,y+radius,radius);
-
-            // draw right side and bottom right corner
-            ctx.arcTo(x+width,y+height,x+width-radius,y+height,radius); 
-
-            // draw bottom and bottom left corner
-            ctx.arcTo(x,y+height,x,y+height-radius,radius);
-
-            // draw left and top left corner
-            ctx.arcTo(x,y,x+radius,y,radius);
 
             if(fill){
                 ctx.fill();
@@ -174,7 +176,6 @@
         function drawSelection(plot, ctx, start, end){
             var o = plot.getOptions();
             var plotOffset = plot.getPlotOffset();
-            
             ctx.save();
             ctx.translate(plotOffset.left, plotOffset.top);
             var c = $.color.parse(o.rangeselection.color);
