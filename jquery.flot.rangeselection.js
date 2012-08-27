@@ -1,10 +1,15 @@
 /*
  * Flot plugin for selecting a range in a graph by moving/resizing a selection area on a second graph
  * 
- * Version 1.0
+ * Version 1.1
  *
  * Released under the MIT license by Troels Bang Jensen, August 2012
  * 
+ * Version history:
+ * 
+ * 1.0 Initial version
+ * 
+ * 1.1 Fixed some cursor issues on leaving the graph and selecting handles at the ends of the graph.
  * 
  */
 
@@ -24,29 +29,44 @@
         var mouseUpHandler = null;
         var mouseFuzz = 5;
         function onMouseMove(e){
+            var o = plot.getOptions();
+            if(!o.rangeselection.enabled)
+                return true;
             var offset = plot.getPlaceholder().offset();
             var plotOffset = plot.getPlotOffset();
-            var x = clamp(0, e.pageX - offset.left - plotOffset.left, plot.width());
+            var realX = e.pageX - offset.left - plotOffset.left;
+            var realY = e.pageY - offset.top - plotOffset.top;
+            if(realX < 0 || realY < 0){
+                //console.info("x:"+realX+", y:"+realY);
+                document.body.style.cursor = 'auto';
+                return false;
+            }
+            var x = clamp(0, realX, plot.width());
+            
             if(!rangeselection.active){   
                 var xaxis = plot.getAxes().xaxis;
                 var f = xaxis.p2c(rangeselection.start);
                 var s = xaxis.p2c(rangeselection.end);
                 var tolerance = mouseFuzz;
-                if(Math.abs(f - x) < tolerance && f > 0){
+                if(Math.abs(f - x) < tolerance && f >= 0){
                     document.body.style.cursor = 'w-resize';
-                }else if(Math.abs(s - x) < tolerance && s < plot.width()){
+                }else if(Math.abs(s - x) < tolerance && s <= plot.width()){
                     document.body.style.cursor = 'e-resize';
                 }else if(x > f && x < s){
                     document.body.style.cursor = 'move';
                 }else{
                     document.body.style.cursor = 'auto';
                 }
-                return;
+                return false;
             }
             rangeselection.movex = x;
             plot.triggerRedrawOverlay();
+            return false;
         }
         function onMouseDown(e){
+            var o = plot.getOptions();
+            if(!o.rangeselection.enabled)
+                return;
             if(e.which != 1) // Only accept left-clicks
                 return;
             
@@ -95,6 +115,9 @@
             $(document).one("mouseup", mouseUpHandler);
         }
         function onMouseUp(e){
+            var o = plot.getOptions();
+            if(!o.rangeselection.enabled)
+                return true;
             mouseUpHandler = null;
             document.body.style.cursor = 'auto';
             rangeselection.active = false;
@@ -146,12 +169,48 @@
         function clamp(min, value, max){
             return value < min ? min : ( value > max ? max : value);
         }
+        function calculateLimits(plot){
+             var xaxis = plot.getAxes().xaxis;
+                
+                var x = rangeselection.movex;
+                var f = xaxis.p2c(rangeselection.start);
+                var s = xaxis.p2c(rangeselection.end);
+                switch(rangeselection.handle){
+                    case "start":
+                        f = x;
+                        if(x < 0)
+                            f = 0;
+                        if(x > s - 10)
+                            f = s - 10; //Minimum size of selection
+                    break;
+                    case "end":
+                        s = x;
+                        if(x > plot.width())
+                            s = plot.width();
+                        if(x < f + 10)
+                            s = f + 10; //Minimum size of selection
+
+                    break;
+                    case "move":
+                        var dx = x -  rangeselection.moveStart;
+                        if(f + dx < 0){
+                            s -= f;
+                            f = 0;
+                        }else if (s+dx > plot.width()){
+                            f = plot.width() - (s - f);
+                            s = plot.width();
+                        }else{
+                            s += dx;
+                            f += dx;
+                        }
+                    break; 
+                }
+        }
         function roundedRect(ctx,x,y,w,h,radius,fill,stroke){
             ctx.save();	// save the context so we don't mess up others
             var r = x + w;
             var b = y + h;
             ctx.beginPath();
-            //ctx.strokeStyle="green";
             ctx.lineWidth="4";
             ctx.moveTo(x+radius, y);
             ctx.lineTo(r-radius, y);
@@ -298,6 +357,6 @@
            }
        },
        name: 'rangeselector',
-       version: '1.0'
+       version: '1.1'
     });
 })(jQuery);
