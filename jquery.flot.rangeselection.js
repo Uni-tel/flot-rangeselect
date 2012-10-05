@@ -11,6 +11,8 @@
  * 
  * 1.1 Fixed some cursor issues on leaving the graph and selecting handles at the ends of the graph.
  * 
+ * 1.2 Limit cursor style to canvas element to avoid hanging cursor style in the rest of the document.
+ * 
  */
 
 (function($){
@@ -30,15 +32,17 @@
         var mouseFuzz = 5;
         function onMouseMove(e){
             var o = plot.getOptions();
-            if(!o.rangeselection.enabled)
+            if(!o.rangeselection.enabled){
+                plot.getPlaceholder().css('cursor', 'auto');
                 return true;
+            }
             var offset = plot.getPlaceholder().offset();
             var plotOffset = plot.getPlotOffset();
             var realX = e.pageX - offset.left - plotOffset.left;
             var realY = e.pageY - offset.top - plotOffset.top;
             if(realX < 0 || realY < 0){
                 //console.info("x:"+realX+", y:"+realY);
-                document.body.style.cursor = 'auto';
+                plot.getPlaceholder().css('cursor', 'auto');
                 return false;
             }
             var x = clamp(0, realX, plot.width());
@@ -49,13 +53,13 @@
                 var s = xaxis.p2c(rangeselection.end);
                 var tolerance = mouseFuzz;
                 if(Math.abs(f - x) < tolerance && f >= 0){
-                    document.body.style.cursor = 'w-resize';
+                    plot.getPlaceholder().css('cursor', 'w-resize');
                 }else if(Math.abs(s - x) < tolerance && s <= plot.width()){
-                    document.body.style.cursor = 'e-resize';
+                    plot.getPlaceholder().css('cursor', 'e-resize');
                 }else if(x > f && x < s){
-                    document.body.style.cursor = 'move';
+                    plot.getPlaceholder().css('cursor', 'move');
                 }else{
-                    document.body.style.cursor = 'auto';
+                    plot.getPlaceholder().css('cursor', 'auto');
                 }
                 return false;
             }
@@ -96,15 +100,15 @@
             var s = xaxis.p2c(rangeselection.end);
             var tolerance = mouseFuzz;
             if(Math.abs(f - x) <= tolerance){
-                document.body.style.cursor = 'w-resize';
+                plot.getPlaceholder().css('cursor', 'w-resize');
                 rangeselection.handle = "start";
                 rangeselection.active = true;
             }else if(Math.abs(s - x) <= tolerance){
-                document.body.style.cursor = 'e-resize';
+                plot.getPlaceholder().css('cursor', 'e-resize');
                 rangeselection.handle = "end";
                 rangeselection.active = true;
             }else{ // if(x > f && x < s)
-                document.body.style.cursor = 'move';
+                plot.getPlaceholder().css('cursor', 'move');
                 rangeselection.handle = "move";
                 rangeselection.moveStart = s - (s - f) / 2;
                 rangeselection.active = true;
@@ -119,7 +123,7 @@
             if(!o.rangeselection.enabled)
                 return true;
             mouseUpHandler = null;
-            document.body.style.cursor = 'auto';
+            plot.getPlaceholder().css('cursor', 'auto');
             rangeselection.active = false;
             var offset = plot.getPlaceholder().offset();
             var plotOffset = plot.getPlotOffset();
