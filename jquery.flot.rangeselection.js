@@ -309,7 +309,7 @@
                 return;
             }
             var series,data;                
-            if(rangeselection.end === null){
+            if(rangeselection.end === null || o.rangeselection.forceRefreshStartEnd){
                 if(o.rangeselection.end === null){
                     series = plot.getData();
                     data = series[0].data;
@@ -318,7 +318,7 @@
                     rangeselection.end = o.rangeselection.end;
                 }
             }
-            if(rangeselection.start === null){
+            if(rangeselection.start === null || o.rangeselection.forceRefreshStartEnd){
                 if(o.rangeselection.start === null){
                     series = plot.getData();
                     data = series[0].data;
@@ -357,7 +357,8 @@
                start: null,
                enabled: false,
                end: null,
-               callback: null
+               callback: null,
+               forceRefreshStartEnd: false
            }
        },
        name: 'rangeselector',
