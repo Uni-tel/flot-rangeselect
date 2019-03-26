@@ -32,6 +32,9 @@
             color: "#fbb",
             borderWidth: 3,
             borderRadius: 3,
+            fixedWidth: false,          // if true, prevents user from being able to resize the selection window
+            noOffset: false             // if true, the selection window left side aligns with cursor on selection 
+
         };
 
         var savedhandlers = {},
@@ -63,9 +66,9 @@
                         s = xaxis.p2c(rangeselection.end),
                         tolerance = mouseFuzz;
 
-                if (Math.abs(f - x) < tolerance && f >= 0) {
+                if (Math.abs(f - x) < tolerance && f >= 0 && !o.rangeselection.fixedWidth) {
                     plot.getPlaceholder().css('cursor', 'w-resize');
-                } else if (Math.abs(s - x) < tolerance && s <= plot.width()) {
+                } else if (Math.abs(s - x) < tolerance && s <= plot.width() && !o.rangeselection.fixedWidth) {
                     plot.getPlaceholder().css('cursor', 'e-resize');
                 } else if (x > f && x < s) {
                     plot.getPlaceholder().css('cursor', 'move');
@@ -114,12 +117,12 @@
                     s = xaxis.p2c(rangeselection.end),
                     tolerance = mouseFuzz;
 
-            if (Math.abs(f - x) <= tolerance) {
+            if (Math.abs(f - x) <= tolerance && !o.rangeselection.fixedWidth) {
                 plot.getPlaceholder().css('cursor', 'w-resize');
                 rangeselection.handle = "start";
                 rangeselection.active = true;
             }
-            else if (Math.abs(s - x) <= tolerance) {
+            else if (Math.abs(s - x) <= tolerance && !o.rangeselection.fixedWidth) {
                 plot.getPlaceholder().css('cursor', 'e-resize');
                 rangeselection.handle = "end";
                 rangeselection.active = true;
@@ -127,7 +130,12 @@
             else { // if(x > f && x < s)
                 plot.getPlaceholder().css('cursor', 'move');
                 rangeselection.handle = "move";
-                rangeselection.moveStart = s - (s - f) / 2;
+                
+                if (o.rangeselection.noOffset)
+                    rangeselection.moveStart = f;
+                else
+                    rangeselection.moveStart = s - (s - f) / 2;
+
                 rangeselection.active = true;
             }
 
